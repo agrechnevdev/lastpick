@@ -3,9 +3,23 @@ package com.lastpick.presentation.choosehero
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.*
+import androidx.compose.material.Button
+import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.Icon
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Surface
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
@@ -49,15 +63,15 @@ class ChooseHeroActivity : ComponentActivity() {
         MaterialTheme {
             Surface(color = Color.White) {
                 val state =
-                    viewModel.observableState.observeAsState(ChooseHeroState(isIdle = true)).value
-
-                FullScreenProgressBar(visible = state.isLoading)
+                    viewModel.observableState.observeAsState(ChooseHeroState(screenStatus = ChooseHeroState.ScreenStatus.Loading)).value
+                val screenStatus = (state as ChooseHeroState).screenStatus
+                FullScreenProgressBar(visible = screenStatus is ChooseHeroState.ScreenStatus.Loading)
                 ErrorLoading(
-                    visible = state.errorMessage != null,
-                    text = state.errorMessage ?: "",
+                    visible = screenStatus is ChooseHeroState.ScreenStatus.Error,
+                    text = (screenStatus as? ChooseHeroState.ScreenStatus.Error)?.errorMessage ?: "",
                     onClick = { viewModel.dispatch(ChooseHeroAction.LoadHeroes) }
                 )
-                ScreenContent(visible = state.listHeroes.isNotEmpty())
+                ScreenContent(visible = screenStatus is ChooseHeroState.ScreenStatus.Heroes)
             }
         }
     }
@@ -157,6 +171,4 @@ class ChooseHeroActivity : ComponentActivity() {
             Text(text = hero.name, fontSize = 12.sp)
         }
     }
-
-
 }

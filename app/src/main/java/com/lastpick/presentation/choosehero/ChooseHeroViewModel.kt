@@ -12,23 +12,18 @@ class ChooseHeroViewModel(
     private val heroInteractor: HeroInteractor
 ) : BaseViewModel<ChooseHeroAction, ChooseHeroState>() {
 
-    override val initialState = initialState ?: ChooseHeroState(isIdle = true)
+    override val initialState = initialState ?: ChooseHeroState(screenStatus = ChooseHeroState.ScreenStatus.Loading)
 
     private val reducer: Reducer<ChooseHeroState, ChooseHeroChange> = { state, change ->
         when (change) {
             is ChooseHeroChange.Loading -> state.copy(
-                isLoading = true,
-                isIdle = false,
-                listHeroes = emptyList(),
-                errorMessage = null
+                screenStatus = ChooseHeroState.ScreenStatus.Loading
             )
             is ChooseHeroChange.HeroesLoaded -> state.copy(
-                isLoading = false,
-                listHeroes = change.list
+                screenStatus = ChooseHeroState.ScreenStatus.Heroes(listHeroes = change.list)
             )
             is ChooseHeroChange.Error -> state.copy(
-                isLoading = false,
-                errorMessage = "Произошла ошибка, нажмите, чтобы перезагрузить"
+                screenStatus = ChooseHeroState.ScreenStatus.Error(errorMessage = "Произошла ошибка, нажмите, чтобы перезагрузить")
             )
         }
     }
@@ -52,11 +47,11 @@ class ChooseHeroViewModel(
 
 //        val allChanges = Observable.merge(loadHeroes)
 
-        disposables.addAll(loadHeroes
-            .scan(initialState, reducer)
-            .filter { !it.isIdle }
-            .distinctUntilChanged()
-            .subscribe(state::postValue, {})
+        disposables.addAll(
+            loadHeroes
+                .scan(initialState, reducer)
+                .distinctUntilChanged()
+                .subscribe(state::postValue, {})
         )
     }
 
