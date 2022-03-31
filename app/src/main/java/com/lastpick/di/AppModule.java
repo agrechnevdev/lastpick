@@ -9,10 +9,4 @@ import dagger.Provides;
 @Module
 public class AppModule {
 
-    @Provides
-    @Singleton
-    @Named("string")
-    String provideString() {
-        return "";
-    }
 }

@@ -15,7 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.composable.SimpleImage
 import com.lastpick.R
-import com.lastpick.presentation.MainActivity
+import com.lastpick.presentation.MenuActivity
 
 class StartActivity : ComponentActivity() {
 
@@ -37,13 +37,13 @@ class StartActivity : ComponentActivity() {
         }
 
         Handler(Looper.getMainLooper()).postDelayed({
-            startActivity(Intent(this@StartActivity, MainActivity::class.java))
+            startActivity(Intent(this@StartActivity, MenuActivity::class.java))
             overridePendingTransition(0, 0)
             finish()
         }, SPLASH_TIME_OUT.toLong())
     }
 
     private companion object {
-        private const val SPLASH_TIME_OUT = 2500
+        private const val SPLASH_TIME_OUT = 1500
     }
 }

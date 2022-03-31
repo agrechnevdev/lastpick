@@ -17,7 +17,7 @@ public class BaseApp extends Application {
 
         appComponent = DaggerAppComponent.builder()
                 .application(this)
-                .netModule(new NetModule("", getApplicationContext()))
+                .netModule(new NetModule("https://api.opendota.com/", getApplicationContext()))
                 .build();
     }
 
@@ -27,7 +27,7 @@ public class BaseApp extends Application {
 //        MultiDex.install(this);
     }
 
-    public AppComponent getNetComponent() {
+    public AppComponent getAppComponent() {
         return appComponent;
     }
 

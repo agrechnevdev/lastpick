@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.lastpick">
 
+    <uses-permission android:name="android.permission.INTERNET"/>
+
     <application
         android:name=".BaseApp"
         android:allowBackup="true"
@@ -22,6 +24,10 @@
         </activity>
 
         <activity android:name=".presentation.MainActivity" />
+
+        <activity android:name=".presentation.MenuActivity" />
+
+        <activity android:name=".presentation.choosehero.ChooseHeroActivity" />
 
     </application>
 

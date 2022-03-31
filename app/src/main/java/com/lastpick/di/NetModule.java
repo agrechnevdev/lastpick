@@ -8,7 +8,7 @@ import com.google.gson.FieldNamingPolicy;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.jakewharton.retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
-
+import com.lastpick.data.OpenDotaApi;
 
 import java.util.concurrent.TimeUnit;
 
@@ -75,5 +75,11 @@ public class NetModule {
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .baseUrl(mBaseUrl)
                 .build();
+    }
+
+    @Provides
+    @Singleton
+    OpenDotaApi provideOpenDotaApi(Retrofit retrofit) {
+        return retrofit.create(OpenDotaApi.class);
     }
 }
