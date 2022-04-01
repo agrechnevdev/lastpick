@@ -2,9 +2,12 @@ package com.lastpick.presentation.choosehero
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.lastpick.R
 import com.lastpick.domain.HeroInteractor
+import com.lastpick.presentation.model.Team
 import com.ww.roxie.BaseViewModel
 import com.ww.roxie.Reducer
+import io.reactivex.Observable
 import io.reactivex.schedulers.Schedulers
 
 class ChooseHeroViewModel(
@@ -12,20 +15,32 @@ class ChooseHeroViewModel(
     private val heroInteractor: HeroInteractor
 ) : BaseViewModel<ChooseHeroAction, ChooseHeroState>() {
 
-    override val initialState = initialState ?: ChooseHeroState(screenStatus = ChooseHeroState.ScreenStatus.Loading)
+    override val initialState = initialState ?: ChooseHeroState(screenState = ChooseHeroState.ScreenState.Loading)
 
     private val reducer: Reducer<ChooseHeroState, ChooseHeroChange> = { state, change ->
         when (change) {
             is ChooseHeroChange.Loading -> state.copy(
-                screenStatus = ChooseHeroState.ScreenStatus.Loading
+                screenState = ChooseHeroState.ScreenState.Loading
             )
             is ChooseHeroChange.HeroesLoaded -> state.copy(
-                screenStatus = ChooseHeroState.ScreenStatus.Heroes(listHeroes = change.list)
+                screenState = ChooseHeroState.ScreenState.Heroes(listHeroes = change.list)
             )
             is ChooseHeroChange.Error -> state.copy(
-                screenStatus = ChooseHeroState.ScreenStatus.Error(errorMessage = "Произошла ошибка, нажмите, чтобы перезагрузить")
+                screenState = ChooseHeroState.ScreenState.Error(errorMessage = R.string.choose_hero_error)
             )
+            is ChooseHeroChange.ChooseHero -> {
+                if (change.team is Team.FriendTeam) {
+                    val newTeam = state.friendTeam
+                    newTeam.mapHeroes[change.position] = change.hero
+                    state.copy(friendTeam = newTeam)
+                } else {
+                    val newTeam = state.enemyTeam
+                    newTeam.mapHeroes[change.position] = change.hero
+                    state.copy(enemyTeam = newTeam)
+                }
+            }
         }
+
     }
 
     init {
@@ -45,10 +60,17 @@ class ChooseHeroViewModel(
                         .startWith(ChooseHeroChange.Loading)
                 }
 
-//        val allChanges = Observable.merge(loadHeroes)
+        val chooseHero =
+            actions.filter { it is ChooseHeroAction.ChooseHero }
+                .map {
+                    val action = it as ChooseHeroAction.ChooseHero
+                    ChooseHeroChange.ChooseHero(team = action.team, position = action.position, hero = action.hero)
+                }
+
+        val allChanges = Observable.merge(loadHeroes, chooseHero)
 
         disposables.addAll(
-            loadHeroes
+            allChanges
                 .scan(initialState, reducer)
                 .distinctUntilChanged()
                 .subscribe(state::postValue, {})

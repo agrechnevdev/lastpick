@@ -1,15 +1,19 @@
 package com.lastpick.presentation.choosehero
 
+import androidx.annotation.StringRes
 import com.lastpick.domain.model.Hero
+import com.lastpick.presentation.model.Team
 import com.ww.roxie.BaseState
 
 data class ChooseHeroState(
-    val screenStatus: ScreenStatus
+    val screenState: ScreenState,
+    val friendTeam : Team.FriendTeam = Team.FriendTeam,
+    val enemyTeam: Team.EnemyTeam = Team.EnemyTeam
 ) : BaseState {
 
-    sealed class ScreenStatus {
-        object Loading : ScreenStatus()
-        data class Error(val errorMessage: String) : ScreenStatus()
-        data class Heroes(val listHeroes: List<Hero> = emptyList()) : ScreenStatus()
+    sealed class ScreenState {
+        object Loading : ScreenState()
+        data class Error(@StringRes val errorMessage: Int) : ScreenState()
+        data class Heroes(val listHeroes: List<Hero> = emptyList()) : ScreenState()
     }
 }

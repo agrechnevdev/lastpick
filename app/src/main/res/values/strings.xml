@@ -3,4 +3,8 @@
 
     <string name="hero_choice">Выбор героя</string>
     <string name="items_timings">Тайминг артефактов</string>
+
+    <string name="choose_hero_error">Произошла ошибка, нажмите, чтобы перезагрузить</string>
+
+    <string name="position">позиция</string>
 </resources>
