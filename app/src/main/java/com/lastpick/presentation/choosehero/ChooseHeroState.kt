@@ -14,6 +14,6 @@ data class ChooseHeroState(
     sealed class ScreenState {
         object Loading : ScreenState()
         data class Error(@StringRes val errorMessage: Int) : ScreenState()
-        data class Heroes(val listHeroes: List<Hero> = emptyList()) : ScreenState()
+        object ScreenShow : ScreenState()
     }
 }

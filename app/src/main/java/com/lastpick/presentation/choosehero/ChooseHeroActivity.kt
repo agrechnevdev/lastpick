@@ -35,6 +35,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.lastpick.BaseApp
 import com.lastpick.R
 import com.lastpick.domain.HeroInteractor
+import com.lastpick.domain.HeroesStorage
 import com.lastpick.domain.model.Hero
 import com.lastpick.presentation.model.Position
 import com.lastpick.presentation.model.Team
@@ -46,20 +47,23 @@ class ChooseHeroActivity : ComponentActivity() {
     @Inject
     lateinit var heroInteractor: HeroInteractor
 
+    @Inject
+    lateinit var heroesStorage: HeroesStorage
+
     private lateinit var viewModel: ChooseHeroViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         (application as BaseApp).appComponent.inject(this)
-        val factory = ChooseHeroViewModel.Factory(null, heroInteractor)
+        val factory = ChooseHeroViewModel.Factory(null, heroInteractor, heroesStorage)
         viewModel = ViewModelProvider(this, factory).get(ChooseHeroViewModel::class.java)
 
         setContent {
             ChooseHeroScreen()
         }
 
-        viewModel.dispatch(ChooseHeroAction.LoadHeroes)
+        viewModel.dispatch(ChooseHeroAction.ReloadHeroes)
     }
 
     @Composable
@@ -73,11 +77,10 @@ class ChooseHeroActivity : ComponentActivity() {
                 ErrorLoading(
                     visible = screenStatus is ChooseHeroState.ScreenState.Error,
                     text = (screenStatus as? ChooseHeroState.ScreenState.Error)?.errorMessage,
-                    onClick = { viewModel.dispatch(ChooseHeroAction.LoadHeroes) }
+                    onClick = { viewModel.dispatch(ChooseHeroAction.ReloadHeroes) }
                 )
                 ScreenContent(
-                    visible = screenStatus is ChooseHeroState.ScreenState.Heroes,
-                    listHeroes = (screenStatus as ChooseHeroState.ScreenState.Heroes).listHeroes
+                    visible = screenStatus is ChooseHeroState.ScreenState.ScreenShow
                 )
             }
         }
@@ -118,7 +121,7 @@ class ChooseHeroActivity : ComponentActivity() {
     }
 
     @Composable
-    fun ScreenContent(visible: Boolean, listHeroes: List<Hero>) {
+    fun ScreenContent(visible: Boolean) {
         if (visible) {
             Row(modifier = Modifier.fillMaxWidth()) {
                 TeamColumn(team = Team.FriendTeam)
@@ -137,7 +140,7 @@ class ChooseHeroActivity : ComponentActivity() {
             modifier = Modifier
                 .fillMaxHeight()
                 .fillMaxWidth(fraction),
-            verticalArrangement = Arrangement.Center,
+            verticalArrangement = Arrangement.Top,
             horizontalAlignment = alignment
         ) {
             for ((pos, hero) in team.mapHeroes) {
@@ -152,7 +155,7 @@ class ChooseHeroActivity : ComponentActivity() {
             modifier = Modifier
                 .fillMaxHeight()
                 .fillMaxWidth(0.5f),
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.Top
         ) {
             Position.values().forEach {
                 Button(
