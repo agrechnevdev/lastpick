@@ -1,9 +1,10 @@
 package com.lastpick.di;
 
-import android.app.Application;
+import android.content.Context;
 
 import com.lastpick.presentation.choosehero.ChooseHeroActivity;
 
+import javax.inject.Named;
 import javax.inject.Singleton;
 
 import dagger.BindsInstance;
@@ -20,9 +21,10 @@ public interface AppComponent {
         AppComponent build();
 
         @BindsInstance
-        Builder application(Application application);
+        Builder context(Context context);
 
-        Builder netModule(NetModule appModule);
+        @BindsInstance
+        Builder openDotaApiUrl(@Named("openDotaApiUrl") String openDotaApiUrl);
 
     }
 }

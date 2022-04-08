@@ -16,8 +16,8 @@ public class BaseApp extends Application {
         super.onCreate();
 
         appComponent = DaggerAppComponent.builder()
-                .application(this)
-                .netModule(new NetModule("https://api.opendota.com/", getApplicationContext()))
+                .context(this)
+                .openDotaApiUrl("https://api.opendota.com/")
                 .build();
     }
 

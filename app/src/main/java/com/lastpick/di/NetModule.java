@@ -1,7 +1,6 @@
 package com.lastpick.di;
 
 
-import android.app.Application;
 import android.content.Context;
 
 import com.google.gson.FieldNamingPolicy;
@@ -25,27 +24,11 @@ import retrofit2.converter.gson.GsonConverterFactory;
 @Module
 public class NetModule {
 
-    private String mBaseUrl;
-    private Context context;
-
-    public NetModule(String mBaseUrl, Context context) {
-        this.mBaseUrl = mBaseUrl;
-        this.context = context;
-    }
-
     @Provides
     @Singleton
-    @Named("baseUrl")
-    String baseUrl() {
-        return mBaseUrl;
-    }
-
-
-    @Provides
-    @Singleton
-    Cache provideHttpCache(Application application) {
+    Cache provideHttpCache(Context context) {
         int cacheSize = 10 * 1024 * 1024;
-        return new Cache(application.getCacheDir(), cacheSize);
+        return new Cache(context.getCacheDir(), cacheSize);
     }
 
     @Provides
@@ -68,12 +51,12 @@ public class NetModule {
 
     @Provides
     @Singleton
-    Retrofit provideRetrofit(Gson gson, OkHttpClient okHttpClient) {
+    Retrofit provideRetrofit(@Named("openDotaApiUrl") String url, Gson gson, OkHttpClient okHttpClient) {
         return new Retrofit.Builder()
                 .client(okHttpClient)
                 .addConverterFactory(GsonConverterFactory.create(gson))
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
-                .baseUrl(mBaseUrl)
+                .baseUrl(url)
                 .build();
     }
 

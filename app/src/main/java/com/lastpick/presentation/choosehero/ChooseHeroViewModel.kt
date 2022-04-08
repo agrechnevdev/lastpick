@@ -8,6 +8,7 @@ import com.lastpick.domain.HeroesStorage
 import com.lastpick.presentation.model.Team
 import com.ww.roxie.BaseViewModel
 import com.ww.roxie.Reducer
+import io.reactivex.Observable
 import io.reactivex.schedulers.Schedulers
 
 class ChooseHeroViewModel(
@@ -26,7 +27,7 @@ class ChooseHeroViewModel(
             is ChooseHeroAction.HeroesLoaded -> {
                 heroesStorage.heroes = action.list
                 state.copy(
-                    screenState = ChooseHeroState.ScreenState.ScreenShow
+                    screenState = ChooseHeroState.ScreenState.ScreenShow()
                 )
             }
             is ChooseHeroAction.HeroesError -> state.copy(
@@ -34,13 +35,13 @@ class ChooseHeroViewModel(
             )
             is ChooseHeroAction.ChooseHero -> {
                 if (action.team is Team.FriendTeam) {
-                    val newTeam = state.friendTeam
+                    val newTeam = (state.screenState as ChooseHeroState.ScreenState.ScreenShow).friendTeam
                     newTeam.mapHeroes[action.position] = action.hero
-                    state.copy(friendTeam = newTeam)
+                    state.copy(screenState = ChooseHeroState.ScreenState.ScreenShow(friendTeam = newTeam))
                 } else {
-                    val newTeam = state.enemyTeam
+                    val newTeam = (state.screenState as ChooseHeroState.ScreenState.ScreenShow).enemyTeam
                     newTeam.mapHeroes[action.position] = action.hero
-                    state.copy(enemyTeam = newTeam)
+                    state.copy(screenState = ChooseHeroState.ScreenState.ScreenShow(enemyTeam = newTeam))
                 }
             }
         }
@@ -63,17 +64,17 @@ class ChooseHeroViewModel(
                         .onErrorReturn { ChooseHeroAction.HeroesError(it) }
                 }
 
-        // val chooseHero =
-        //     actions.filter { it is ChooseHeroAction.ChooseHero }
-        //         .map {
-        //             val action = it as ChooseHeroAction.ChooseHero
-        //             ChooseHeroAction.ChooseHero(team = action.team, position = action.position, hero = action.hero)
-        //         }
-        //
-        // val allactions = Observable.merge(loadHeroes, chooseHero)
+        val chooseHero =
+            actions.filter { it is ChooseHeroAction.ChooseHero }
+                .map {
+                    val action = it as ChooseHeroAction.ChooseHero
+                    ChooseHeroAction.ChooseHero(team = action.team, position = action.position, hero = action.hero)
+                }
+
+        val allactions = Observable.merge(loadHeroes, chooseHero)
 
         disposables.addAll(
-            loadHeroes
+            allactions
                 .scan(initialState, reducer)
                 .distinctUntilChanged()
                 .subscribe(state::postValue, {})

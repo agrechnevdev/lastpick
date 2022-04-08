@@ -144,7 +144,15 @@ class ChooseHeroActivity : ComponentActivity() {
             horizontalAlignment = alignment
         ) {
             for ((pos, hero) in team.mapHeroes) {
-                HeroButton(team = team, pos = pos, hero = hero, onClick = {})
+                HeroButton(team = team, pos = pos, hero = hero, onClick = {
+                    viewModel.dispatch(
+                        ChooseHeroAction.ChooseHero(
+                            team,
+                            pos,
+                            Hero("Antimage", "/apps/dota2/images/dota_react/heroes/antimage.png?")
+                        )
+                    )
+                })
             }
         }
     }
