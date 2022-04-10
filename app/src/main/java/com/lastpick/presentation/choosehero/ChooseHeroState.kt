@@ -12,8 +12,8 @@ data class ChooseHeroState(
         object Loading : ScreenState()
         data class Error(@StringRes val errorMessage: Int) : ScreenState()
         data class ScreenShow(
-            val friendTeam: Team.FriendTeam = Team.FriendTeam,
-            val enemyTeam: Team.EnemyTeam = Team.EnemyTeam
+            val friendTeam: Team.FriendTeam = Team.FriendTeam(),
+            val enemyTeam: Team.EnemyTeam = Team.EnemyTeam()
         ) : ScreenState()
     }
 }

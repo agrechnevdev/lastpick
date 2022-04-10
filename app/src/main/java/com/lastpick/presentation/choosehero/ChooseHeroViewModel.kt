@@ -1,14 +1,17 @@
 package com.lastpick.presentation.choosehero
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.lastpick.R
 import com.lastpick.domain.HeroInteractor
 import com.lastpick.domain.HeroesStorage
 import com.lastpick.presentation.model.Team
+import com.lastpick.presentation.model.isFriend
 import com.ww.roxie.BaseViewModel
 import com.ww.roxie.Reducer
 import io.reactivex.Observable
+import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.schedulers.Schedulers
 
 class ChooseHeroViewModel(
@@ -17,7 +20,8 @@ class ChooseHeroViewModel(
     private val heroesStorage: HeroesStorage
 ) : BaseViewModel<ChooseHeroAction, ChooseHeroState>() {
 
-    override val initialState = initialState ?: ChooseHeroState(screenState = ChooseHeroState.ScreenState.Loading)
+    override val initialState =
+        initialState ?: ChooseHeroState(screenState = ChooseHeroState.ScreenState.Loading)
 
     private val reducer: Reducer<ChooseHeroState, ChooseHeroAction> = { state, action ->
         when (action) {
@@ -34,18 +38,22 @@ class ChooseHeroViewModel(
                 screenState = ChooseHeroState.ScreenState.Error(errorMessage = R.string.choose_hero_error)
             )
             is ChooseHeroAction.ChooseHero -> {
-                if (action.team is Team.FriendTeam) {
-                    val newTeam = (state.screenState as ChooseHeroState.ScreenState.ScreenShow).friendTeam
-                    newTeam.mapHeroes[action.position] = action.hero
-                    state.copy(screenState = ChooseHeroState.ScreenState.ScreenShow(friendTeam = newTeam))
+                if (action.team.isFriend()) {
+                    val map =
+                        (state.screenState as ChooseHeroState.ScreenState.ScreenShow).friendTeam.mapHeroes.toMutableMap()
+                    map[action.position] = action.hero
+                    val newTeam = Team.FriendTeam(map)
+
+                    state.copy(screenState = state.screenState.copy(friendTeam = newTeam))
                 } else {
-                    val newTeam = (state.screenState as ChooseHeroState.ScreenState.ScreenShow).enemyTeam
-                    newTeam.mapHeroes[action.position] = action.hero
-                    state.copy(screenState = ChooseHeroState.ScreenState.ScreenShow(enemyTeam = newTeam))
+                    val map =
+                        (state.screenState as ChooseHeroState.ScreenState.ScreenShow).enemyTeam.mapHeroes.toMutableMap()
+                    map[action.position] = action.hero
+                    val newTeam = Team.EnemyTeam(map)
+                    state.copy(screenState = state.screenState.copy(enemyTeam = newTeam))
                 }
             }
         }
-
     }
 
     init {
@@ -68,18 +76,30 @@ class ChooseHeroViewModel(
             actions.filter { it is ChooseHeroAction.ChooseHero }
                 .map {
                     val action = it as ChooseHeroAction.ChooseHero
-                    ChooseHeroAction.ChooseHero(team = action.team, position = action.position, hero = action.hero)
+                    ChooseHeroAction.ChooseHero(
+                        team = action.team,
+                        position = action.position,
+                        hero = action.hero
+                    )
                 }
 
         val allactions = Observable.merge(loadHeroes, chooseHero)
 
         disposables.addAll(
             allactions
+                .doOnNext { Log.d("", it.toString()) }
                 .scan(initialState, reducer)
+                .doOnNext { Log.d("", it.screenState.toString()) }
                 .distinctUntilChanged()
+                .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(state::postValue, {})
         )
     }
+
+    fun clear() {
+        onCleared()
+    }
+
 
     class Factory(
         private val initialState: ChooseHeroState?,
