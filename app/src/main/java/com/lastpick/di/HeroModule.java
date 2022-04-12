@@ -10,14 +10,14 @@ import dagger.Module;
 import dagger.Provides;
 
 @Module
-public class HeroModule {
+public interface HeroModule {
     @Provides
-    HeroRepository provideHeroRepository(OpenDotaApi openDotaApi) {
+    static HeroRepository provideHeroRepository(OpenDotaApi openDotaApi) {
         return new HeroRepositoryImpl(openDotaApi);
     }
 
     @Provides
-    HeroInteractor provideHeroInteractor(HeroRepository heroRepository) {
+    static  HeroInteractor provideHeroInteractor(HeroRepository heroRepository) {
         return new HeroInteractorImpl(heroRepository);
     }
 }

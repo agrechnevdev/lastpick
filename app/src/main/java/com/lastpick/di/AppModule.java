@@ -7,10 +7,10 @@ import dagger.Module;
 import dagger.Provides;
 
 @Module
-public class AppModule {
+public interface AppModule {
 
     @Provides
-    HeroesStorage provideHeroesStorage() {
+    static HeroesStorage provideHeroesStorage() {
         return new HeroesStorageImpl();
     }
 }

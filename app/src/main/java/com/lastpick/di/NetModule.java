@@ -22,18 +22,18 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 @Module
-public class NetModule {
+public interface NetModule {
 
     @Provides
     @Singleton
-    Cache provideHttpCache(Context context) {
+    static Cache provideHttpCache(Context context) {
         int cacheSize = 10 * 1024 * 1024;
         return new Cache(context.getCacheDir(), cacheSize);
     }
 
     @Provides
     @Singleton
-    Gson provideGson() {
+    static Gson provideGson() {
         GsonBuilder gsonBuilder = new GsonBuilder();
         gsonBuilder.setFieldNamingPolicy(FieldNamingPolicy.LOWER_CASE_WITH_UNDERSCORES);
         gsonBuilder.setDateFormat("yyyy-MM-dd hh:mm:ss.S");
@@ -42,7 +42,7 @@ public class NetModule {
 
     @Provides
     @Singleton
-    OkHttpClient provideOkhttpClient(Cache cache) {
+    static OkHttpClient provideOkhttpClient(Cache cache) {
         OkHttpClient.Builder client = new OkHttpClient.Builder();
         client.connectTimeout(5, TimeUnit.SECONDS);
         client.cache(cache);
@@ -51,7 +51,7 @@ public class NetModule {
 
     @Provides
     @Singleton
-    Retrofit provideRetrofit(@Named("openDotaApiUrl") String url, Gson gson, OkHttpClient okHttpClient) {
+    static Retrofit provideRetrofit(@Named("openDotaApiUrl") String url, Gson gson, OkHttpClient okHttpClient) {
         return new Retrofit.Builder()
                 .client(okHttpClient)
                 .addConverterFactory(GsonConverterFactory.create(gson))
@@ -62,7 +62,7 @@ public class NetModule {
 
     @Provides
     @Singleton
-    OpenDotaApi provideOpenDotaApi(Retrofit retrofit) {
+    static OpenDotaApi provideOpenDotaApi(Retrofit retrofit) {
         return retrofit.create(OpenDotaApi.class);
     }
 }
