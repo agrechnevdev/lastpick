@@ -2,7 +2,7 @@ package com.lastpick.di;
 
 import android.content.Context;
 
-import com.lastpick.presentation.choosehero.ChooseHeroActivity;
+import com.lastpick.presentation.teams.TeamsActivity;
 
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -14,7 +14,7 @@ import dagger.Component;
 @Component(modules = {AppModule.class, NetModule.class, HeroModule.class})
 public interface AppComponent {
 
-    void inject(ChooseHeroActivity activity);
+    void inject(TeamsActivity activity);
 
     @Component.Builder
     interface Builder {

@@ -1,5 +1,6 @@
-package com.lastpick.presentation.choosehero
+package com.lastpick.presentation.teams
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -9,6 +10,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -25,9 +27,10 @@ import com.lastpick.domain.model.Hero
 import com.lastpick.presentation.model.Position
 import com.lastpick.presentation.model.Team
 import com.lastpick.presentation.model.isFriend
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-class ChooseHeroActivity : ComponentActivity() {
+class TeamsActivity : ComponentActivity() {
 
     @Inject
     lateinit var heroInteractor: HeroInteractor
@@ -35,39 +38,41 @@ class ChooseHeroActivity : ComponentActivity() {
     @Inject
     lateinit var heroesStorage: HeroesStorage
 
-    private lateinit var viewModel: ChooseHeroViewModel
+    private lateinit var viewModel: TeamsViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         (application as BaseApp).appComponent.inject(this)
-        val factory = ChooseHeroViewModel.Factory(null, heroInteractor, heroesStorage)
-        viewModel = ViewModelProvider(this, factory).get(ChooseHeroViewModel::class.java)
+        val factory = TeamsViewModel.Factory(heroInteractor, heroesStorage)
+        viewModel = ViewModelProvider(this, factory).get(TeamsViewModel::class.java)
 
         setContent {
             ChooseHeroScreen(viewModel = viewModel)
         }
 
-        viewModel.dispatch(ChooseHeroAction.ReloadHeroes)
+        viewModel.dispatch(TeamsMviAction.ShowLoading)
     }
 
+    @OptIn(ExperimentalMaterialApi::class)
     @Composable
-    fun ChooseHeroScreen(viewModel: ChooseHeroViewModel) {
+    fun ChooseHeroScreen(viewModel: TeamsViewModel) {
         MaterialTheme {
             Surface(color = Color.White) {
                 val viewState = viewModel.observableState.observeAsState()
                 when (val screenState = viewState.value?.screenState) {
-                    is ChooseHeroState.ScreenState.Loading ->
+                    is TeamsMviState.ScreenState.Loading ->
                         FullScreenProgressBar()
-                    is ChooseHeroState.ScreenState.Error ->
+                    is TeamsMviState.ScreenState.Error ->
                         ErrorLoading(
                             text = screenState.errorMessage,
-                            onClick = { viewModel.dispatch(ChooseHeroAction.ReloadHeroes) }
+                            onClick = { viewModel.dispatch(TeamsMviAction.ShowLoading) }
                         )
-                    is ChooseHeroState.ScreenState.ScreenShow ->
+                    is TeamsMviState.ScreenState.ScreenShow ->
                         ScreenContent(
                             friendTeam = screenState.friendTeam,
-                            enemyTeam = screenState.enemyTeam
+                            enemyTeam = screenState.enemyTeam,
+                            bottomSheetOpen = screenState.bottomSheetOpen
                         )
                     else -> {}
                 }
@@ -105,12 +110,53 @@ class ChooseHeroActivity : ComponentActivity() {
         }
     }
 
+    @SuppressLint("CoroutineCreationDuringComposition")
+    @ExperimentalMaterialApi
     @Composable
-    fun ScreenContent(friendTeam: Team, enemyTeam: Team) {
+    fun ScreenContent(friendTeam: Team, enemyTeam: Team, bottomSheetOpen: Boolean) {
         Row(modifier = Modifier.fillMaxWidth()) {
             TeamColumn(team = friendTeam)
             PositionsColumn()
             TeamColumn(team = enemyTeam)
+
+            val bottomSheetScaffoldState = rememberBottomSheetScaffoldState(
+                bottomSheetState = BottomSheetState(BottomSheetValue.Collapsed)
+            )
+            val coroutineScope = rememberCoroutineScope()
+            coroutineScope.launch {
+                if (bottomSheetOpen) {
+                    bottomSheetScaffoldState.bottomSheetState.expand()
+                } else {
+                    bottomSheetScaffoldState.bottomSheetState.collapse()
+                }
+            }
+
+            BottomSheetScaffold(
+                scaffoldState = bottomSheetScaffoldState,
+                sheetContent = {
+                    Box(
+                        Modifier
+                            .fillMaxWidth()
+                            .height(200.dp)
+                    ) {
+                        Text(text = "Hello from sheet")
+                    }
+                }, sheetPeekHeight = 0.dp
+            ) {
+
+                Button(onClick = {
+                    viewModel.dispatch(
+                        TeamsMviAction.HeroChosen(
+                            Hero(
+                                "Antimage",
+                                "/apps/dota2/images/dota_react/heroes/antimage.png?"
+                            )
+                        )
+                    )
+                }) {
+                    Text(text = "Choose Hero")
+                }
+            }
         }
     }
 
@@ -128,13 +174,7 @@ class ChooseHeroActivity : ComponentActivity() {
         ) {
             for ((pos, hero) in team.mapHeroes) {
                 HeroButton(team = team, pos = pos, hero = hero, onClick = {
-                    viewModel.dispatch(
-                        ChooseHeroAction.ChooseHero(
-                            team,
-                            pos,
-                            Hero("Antimage", "/apps/dota2/images/dota_react/heroes/antimage.png?")
-                        )
-                    )
+                    viewModel.dispatch(TeamsMviAction.ClickHeroButton(team = team, pos = pos))
                 })
             }
         }

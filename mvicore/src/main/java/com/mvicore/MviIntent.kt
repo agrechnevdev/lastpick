@@ -1,3 +1,3 @@
 package com.mvicore
 
-interface State
+interface MviIntent

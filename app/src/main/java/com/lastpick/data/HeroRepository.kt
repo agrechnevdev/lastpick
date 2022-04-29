@@ -5,5 +5,7 @@ import io.reactivex.Single
 
 interface HeroRepository {
 
+    suspend fun heroStatsCoroutine(): List<HeroStats>
+
     fun heroStats(): Single<List<HeroStats>>
 }

@@ -23,11 +23,9 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".presentation.MainActivity" />
-
         <activity android:name=".presentation.MenuActivity" />
 
-        <activity android:name=".presentation.choosehero.ChooseHeroActivity" />
+        <activity android:name=".presentation.teams.TeamsActivity" />
 
     </application>
 

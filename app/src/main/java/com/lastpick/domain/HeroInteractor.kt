@@ -5,6 +5,8 @@ import io.reactivex.Single
 
 interface HeroInteractor {
 
+    suspend fun heroesStatsCoroutine(): List<Hero>
+
     fun heroesStats(): Single<List<Hero>>
 
 }

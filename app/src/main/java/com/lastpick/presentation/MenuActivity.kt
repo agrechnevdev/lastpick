@@ -15,7 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lastpick.R
-import com.lastpick.presentation.choosehero.ChooseHeroActivity
+import com.lastpick.presentation.teams.TeamsActivity
 
 class MenuActivity : ComponentActivity() {
 
@@ -31,7 +31,7 @@ class MenuActivity : ComponentActivity() {
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Button(
-                            onClick = { startActivity(Intent(this@MenuActivity, ChooseHeroActivity::class.java)) },
+                            onClick = { startActivity(Intent(this@MenuActivity, TeamsActivity::class.java)) },
                             modifier = Modifier.padding(8.dp),
                             contentPadding = PaddingValues(32.dp, 16.dp)
                         ) {
