@@ -11,6 +11,7 @@ import com.lastpick.presentation.model.isFriend
 import com.mvicore.ReducerFun
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.consumeEach
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 
 class TeamsCoroutinesViewModel(
@@ -18,8 +19,12 @@ class TeamsCoroutinesViewModel(
     private val heroesStorage: HeroesStorage
 ) : ViewModel() {
 
-    protected val intentChannel: Channel<TeamsMviIntent> = Channel(Channel.UNLIMITED)
-    val stateChannel = Channel<TeamsMviState>(Channel.UNLIMITED)
+    val intentChannel: Channel<TeamsMviIntent> = Channel(Channel.UNLIMITED)
+    val actionChannel: Channel<TeamsMviAction> = Channel(Channel.UNLIMITED)
+
+    //    val stateChannel = Channel<TeamsMviState>(Channel.UNLIMITED)
+    val stateFlow =
+        MutableStateFlow(TeamsMviState(screenState = TeamsMviState.ScreenState.Loading))
 
     private val reducer: ReducerFun<TeamsMviState, TeamsMviAction> = { state, action ->
         when (action) {
@@ -79,10 +84,11 @@ class TeamsCoroutinesViewModel(
 
     init {
         viewModelScope.launch {
-            bindActions()
+            bindIntent()
         }
-
-
+        viewModelScope.launch {
+            bindAction()
+        }
     }
 
     fun doIntent(intent: TeamsMviIntent) {
@@ -91,28 +97,32 @@ class TeamsCoroutinesViewModel(
         }
     }
 
-    private suspend fun bindActions() {
+    private suspend fun bindIntent() {
         intentChannel.consumeEach { intent ->
-            val action = when (intent) {
+            when (intent) {
                 is TeamsMviIntent.ReloadHeroes -> {
-                    TeamsMviAction.ShowLoading
+                    actionChannel.send(TeamsMviAction.ShowLoading)
                     try {
-                        TeamsMviAction.HeroesLoaded(heroInteractor.heroesStatsCoroutine())
+                        actionChannel.send(TeamsMviAction.HeroesLoaded(heroInteractor.heroesStatsCoroutine()))
                     } catch (t: Throwable) {
-                        TeamsMviAction.HeroesError(t)
+                        actionChannel.send(TeamsMviAction.HeroesError(t))
                     }
                 }
 
                 is TeamsMviIntent.HeroChosen -> {
-                    TeamsMviAction.HeroChosen(hero = intent.hero)
+                    actionChannel.send(TeamsMviAction.HeroChosen(hero = intent.hero))
                 }
                 is TeamsMviIntent.ClickHeroButton -> {
-                    TeamsMviAction.ClickHeroButton(intent.team, intent.pos)
+                    actionChannel.send(TeamsMviAction.ClickHeroButton(intent.team, intent.pos))
                 }
             }
+        }
+    }
 
-            val newState = reducer.invoke(stateChannel.receive(), action)
-            stateChannel.send(newState)
+    private suspend fun bindAction() {
+        actionChannel.consumeEach { action ->
+            val newState = reducer.invoke(stateFlow.value, action)
+            stateFlow.emit(newState)
         }
     }
 
@@ -122,7 +132,7 @@ class TeamsCoroutinesViewModel(
         private val heroesStorage: HeroesStorage
     ) : ViewModelProvider.Factory {
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return TeamsViewModel(heroInteractor, heroesStorage) as T
+            return TeamsCoroutinesViewModel(heroInteractor, heroesStorage) as T
         }
     }
 }

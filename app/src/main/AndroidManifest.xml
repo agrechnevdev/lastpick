@@ -27,6 +27,8 @@
 
         <activity android:name=".presentation.teams.TeamsActivity" />
 
+        <activity android:name=".presentation.teams.TeamsCoroutinesActivity" />
+
     </application>
 
 </manifest>

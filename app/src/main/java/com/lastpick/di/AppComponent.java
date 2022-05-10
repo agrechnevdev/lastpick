@@ -3,6 +3,7 @@ package com.lastpick.di;
 import android.content.Context;
 
 import com.lastpick.presentation.teams.TeamsActivity;
+import com.lastpick.presentation.teams.TeamsCoroutinesActivity;
 
 import javax.inject.Named;
 import javax.inject.Singleton;
@@ -15,6 +16,8 @@ import dagger.Component;
 public interface AppComponent {
 
     void inject(TeamsActivity activity);
+
+    void inject(TeamsCoroutinesActivity activity);
 
     @Component.Builder
     interface Builder {

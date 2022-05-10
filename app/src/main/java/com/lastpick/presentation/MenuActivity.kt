@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.lastpick.R
 import com.lastpick.presentation.teams.TeamsActivity
+import com.lastpick.presentation.teams.TeamsCoroutinesActivity
 
 class MenuActivity : ComponentActivity() {
 
@@ -31,7 +32,7 @@ class MenuActivity : ComponentActivity() {
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Button(
-                            onClick = { startActivity(Intent(this@MenuActivity, TeamsActivity::class.java)) },
+                            onClick = { startActivity(Intent(this@MenuActivity, TeamsCoroutinesActivity::class.java)) },
                             modifier = Modifier.padding(8.dp),
                             contentPadding = PaddingValues(32.dp, 16.dp)
                         ) {
